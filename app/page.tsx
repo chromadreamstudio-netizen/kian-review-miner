@@ -57,7 +57,7 @@ export default function ReviewMinerDashboard() {
     setIsExporting(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.getElementById('report-content');
+      const element = document.getElementById('report-content'); as HTMLElement;
       
         const opt: any = {
         margin: 10,
