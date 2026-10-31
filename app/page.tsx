@@ -57,9 +57,14 @@ export default function ReviewMinerDashboard() {
     setIsExporting(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.getElementById('report-content'); as HTMLElement;
+      const element = document.getElementById('report-content');
       
-        const opt: any = {
+      // تحقق برمجي كلاسيكي بدلاً من استخدام (as HTMLElement) لتجنب أخطاء البناء في Vercel
+      if (!element) {
+        throw new Error("لم يتم العثور على العنصر المراد تصديره");
+      }
+      
+      const opt: any = {
         margin: 10,
         filename: 'Kian_Market_Research_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
