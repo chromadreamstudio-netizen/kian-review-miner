@@ -59,7 +59,7 @@ export default function ReviewMinerDashboard() {
       const html2pdf = (await import('html2pdf.js')).default;
       const element = document.getElementById('report-content');
       
-      const opt = {
+        const opt: any = {
         margin: 10,
         filename: 'Kian_Market_Research_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
