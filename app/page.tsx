@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Lightbulb, TrendingUp, Copy, Check, Search, Loader2, Download } from "lucide-react";
+import { AlertTriangle, Lightbulb, TrendingUp, Copy, Check, Search, Loader2, Download, Users, DollarSign, Activity } from "lucide-react";
 
 export default function ReviewMinerDashboard() {
   const [url, setUrl] = useState("");
@@ -18,17 +18,14 @@ export default function ReviewMinerDashboard() {
     setReport(null);
     
     try {
-      // الاتصال بالخادم الحي على Render
       const response = await fetch("https://kian-review-api.onrender.com/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url }),
       });
 
       if (!response.ok) {
-        throw new Error("محرك الذكاء الاصطناعي يشهد ضغطاً عالياً حالياً. يرجى الانتظار بضع ثوانٍ ثم الضغط على 'تحليل الآن' مرة أخرى.");
+        throw new Error("حدث خطأ أثناء معالجة الرابط. يرجى المحاولة مرة أخرى.");
       }
 
       const data = await response.json();
@@ -36,7 +33,7 @@ export default function ReviewMinerDashboard() {
       if (data.marketResearchReport) {
         setReport(data.marketResearchReport);
       } else {
-        throw new Error("لم يتم العثور على التقرير. يرجى المحاولة مرة أخرى.");
+        throw new Error("لم يتم العثور على التقرير في استجابة الخادم.");
       }
       
     } catch (error: any) {
@@ -52,23 +49,21 @@ export default function ReviewMinerDashboard() {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  // دالة تصدير التقرير إلى PDF
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       const element = document.getElementById('report-content');
       
-      // تحقق برمجي كلاسيكي بدلاً من استخدام (as HTMLElement) لتجنب أخطاء البناء في Vercel
       if (!element) {
         throw new Error("لم يتم العثور على العنصر المراد تصديره");
       }
       
       const opt: any = {
-        margin: 10,
+        margin: [10, 10, 10, 10], // هوامش متساوية
         filename: 'Kian_Market_Research_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
@@ -85,7 +80,7 @@ export default function ReviewMinerDashboard() {
     <div className="min-h-screen bg-gray-50 p-8 font-sans" dir="rtl">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* رأس الصفحة - مركز القيادة */}
+        {/* Header */}
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-900">مُحلل المنافسين الذكي 🚀</h1>
@@ -97,7 +92,7 @@ export default function ReviewMinerDashboard() {
               <Search className="absolute right-4 top-3.5 h-5 w-5 text-gray-400" />
               <input
                 type="url"
-                placeholder="أدخل رابط منتج المنافس (مثال: https://quotes.toscrape.com/)..."
+                placeholder="أدخل رابط المنتج..."
                 className="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-left"
                 dir="ltr"
                 value={url}
@@ -120,10 +115,9 @@ export default function ReviewMinerDashboard() {
           )}
         </div>
 
-        {/* منطقة عرض النتائج */}
-        {report && report.top_3_structural_flaws && (
+        {/* Report Content */}
+        {report && (
           <div className="space-y-6">
-            {/* شريط الإجراءات (زر التصدير) */}
             <div className="flex justify-end">
               <button
                 onClick={exportToPDF}
@@ -135,71 +129,125 @@ export default function ReviewMinerDashboard() {
               </button>
             </div>
 
-            {/* الحاوية التي سيتم تحويلها لـ PDF */}
-            <div id="report-content" className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-2">
+            <div id="report-content" className="space-y-6 bg-gray-50 p-4 rounded-xl">
               
-              <div className="bg-red-50/50 border border-red-100 p-6 rounded-2xl space-y-4">
-                <div className="flex items-center gap-3 text-red-700">
-                  <div className="bg-red-100 p-2 rounded-lg">
-                    <AlertTriangle className="h-6 w-6" />
-                  </div>
-                  <h2 className="text-xl font-bold">أبرز 3 عيوب في المنافس</h2>
-                </div>
-                <ul className="space-y-3" dir="ltr">
-                  {report.top_3_structural_flaws.map((flaw: string, i: number) => (
-                    <li key={i} className="flex gap-3 text-gray-700 leading-relaxed text-left">
-                      <span className="text-red-500 font-bold">•</span>
-                      {flaw}
-                    </li>
-                  ))}
-                </ul>
+              {/* Header inside PDF */}
+              <div className="text-center pb-4 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-800">تقرير استخبارات السوق</h2>
+                <p className="text-gray-500 mt-1">تم الإنشاء بواسطة Kian Solutions</p>
               </div>
 
-              <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-2xl space-y-4">
-                <div className="flex items-center gap-3 text-blue-700">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Lightbulb className="h-6 w-6" />
-                  </div>
-                  <h2 className="text-xl font-bold">رغبات السوق غير الملباة</h2>
-                </div>
-                <ul className="space-y-3" dir="ltr">
-                  {report.unmet_desires.map((desire: string, i: number) => (
-                    <li key={i} className="flex gap-3 text-gray-700 leading-relaxed text-left">
-                      <span className="text-blue-500 font-bold">•</span>
-                      {desire}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="md:col-span-2 bg-white border border-gray-100 p-6 rounded-2xl space-y-6 shadow-sm">
-                <div className="flex items-center gap-3 text-gray-900 border-b pb-4">
-                  <div className="bg-gray-100 p-2 rounded-lg">
-                    <TrendingUp className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">خطافات تيك توك وميتا الجاهزة</h2>
-                    <p className="text-sm text-gray-500 mt-1">انسخ النصوص وأرسلها لفريق الميديا باير الخاص بك</p>
-                  </div>
-                </div>
-                
-                <div className="grid gap-4" dir="ltr">
-                  {report.tiktok_meta_ad_hooks.map((hook: string, index: number) => (
-                    <div key={index} className="flex items-center justify-between gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors group text-left">
-                      <p className="text-gray-800 font-medium leading-relaxed">{hook}</p>
-                      <button
-                        onClick={() => copyToClipboard(hook, index)}
-                        className={`p-2 rounded-lg flex-shrink-0 transition-all ${
-                          copiedIndex === index ? "bg-green-100 text-green-600" : "bg-white text-gray-400 hover:text-gray-900 border shadow-sm group-hover:border-gray-300"
-                        }`}
-                        data-html2canvas-ignore // يمنع ظهور زر النسخ في ملف الـ PDF
-                      >
-                        {copiedIndex === index ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-                      </button>
+              {/* Metadata & Pricing Grid */}
+              {report.report_metadata && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white border border-gray-200 p-4 rounded-xl flex items-center gap-4">
+                    <Activity className="h-8 w-8 text-blue-500 bg-blue-50 p-1.5 rounded-lg" />
+                    <div>
+                      <h3 className="text-sm text-gray-500 font-medium">التحليل الإحصائي</h3>
+                      <p className="font-bold text-gray-800">{report.report_metadata.analyzed_sample_size}</p>
+                      <p className="text-sm text-gray-600">التوجه العام: {report.report_metadata.general_sentiment}</p>
                     </div>
-                  ))}
+                  </div>
+                  {report.pricing_gap_analysis && (
+                    <div className="bg-white border border-gray-200 p-4 rounded-xl flex gap-4">
+                      <DollarSign className="h-8 w-8 text-emerald-500 bg-emerald-50 p-1.5 rounded-lg shrink-0" />
+                      <div>
+                        <h3 className="text-sm text-gray-500 font-medium">تحليل الفجوة التسعيرية</h3>
+                        <p className="font-medium text-gray-800 text-sm leading-relaxed">{report.pricing_gap_analysis}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {/* Buyer Persona */}
+              {report.buyer_persona && (
+                <div className="bg-white border border-indigo-100 p-6 rounded-2xl">
+                  <div className="flex items-center gap-3 text-indigo-700 mb-4">
+                    <Users className="h-6 w-6 bg-indigo-50 p-1 rounded-lg" />
+                    <h2 className="text-xl font-bold">شخصية المشتري (Buyer Persona)</h2>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-4 text-sm">
+                    <div className="bg-indigo-50/50 p-4 rounded-xl">
+                      <span className="block text-indigo-600 font-bold mb-1">التركيبة السكانية:</span>
+                      <span className="text-gray-700">{report.buyer_persona.demographics}</span>
+                    </div>
+                    <div className="bg-indigo-50/50 p-4 rounded-xl">
+                      <span className="block text-indigo-600 font-bold mb-1">الرغبة العميقة:</span>
+                      <span className="text-gray-700">{report.buyer_persona.core_desire}</span>
+                    </div>
+                    <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                      <span className="block text-red-500 font-bold mb-1">أكبر نقطة ألم:</span>
+                      <span className="text-gray-700">{report.buyer_persona.pain_points}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Flaws & Desires Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {report.top_3_structural_flaws && (
+                  <div className="bg-red-50/50 border border-red-100 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 text-red-700 mb-4">
+                      <AlertTriangle className="h-6 w-6 bg-red-100 p-1 rounded-lg" />
+                      <h2 className="text-lg font-bold">أبرز العيوب الهيكلية</h2>
+                    </div>
+                    <ul className="space-y-3">
+                      {report.top_3_structural_flaws.map((flaw: string, i: number) => (
+                        <li key={i} className="flex gap-2 text-gray-700 text-sm leading-relaxed">
+                          <span className="text-red-500 font-bold">•</span> {flaw}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {report.unmet_desires && (
+                  <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 text-blue-700 mb-4">
+                      <Lightbulb className="h-6 w-6 bg-blue-100 p-1 rounded-lg" />
+                      <h2 className="text-lg font-bold">الرغبات غير الملباة</h2>
+                    </div>
+                    <ul className="space-y-3">
+                      {report.unmet_desires.map((desire: string, i: number) => (
+                        <li key={i} className="flex gap-2 text-gray-700 text-sm leading-relaxed">
+                          <span className="text-blue-500 font-bold">•</span> {desire}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
+
+              {/* Ad Hooks */}
+              {report.tiktok_meta_ad_hooks && (
+                <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+                  <div className="flex items-center gap-3 text-gray-900 border-b pb-4 mb-4">
+                    <TrendingUp className="h-6 w-6 bg-gray-100 p-1 rounded-lg" />
+                    <div>
+                      <h2 className="text-xl font-bold">زوايا إعلانية مقترحة (Ad Hooks)</h2>
+                      <p className="text-xs text-gray-500 mt-1">جاهزة للاستخدام في تيك توك وميتا</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-3">
+                    {report.tiktok_meta_ad_hooks.map((hook: string, index: number) => (
+                      <div key={index} className="flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-gray-300 transition-colors group">
+                        <p className="text-gray-800 text-sm font-medium leading-relaxed">{hook}</p>
+                        <button
+                          onClick={() => copyToClipboard(hook, index)}
+                          className={`p-1.5 rounded-lg flex-shrink-0 transition-all ${
+                            copiedIndex === index ? "text-green-600" : "text-gray-400 hover:text-gray-900"
+                          }`}
+                          data-html2canvas-ignore
+                        >
+                          {copiedIndex === index ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
             </div>
           </div>
         )}
