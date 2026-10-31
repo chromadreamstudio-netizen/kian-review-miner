@@ -19,7 +19,7 @@ export default function ReviewMinerDashboard() {
     
     try {
       // إرسال الطلب إلى FastAPI (البايثون)
-      const response = await fetch("http://127.0.0.1:8000/api/analyze", {
+      const response = await fetch("https://kian-review-api.onrender.com/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
